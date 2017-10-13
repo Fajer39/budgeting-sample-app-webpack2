@@ -1,6 +1,7 @@
 import {
   sortTransactions,
   getTransactions,
+  getTransactionById,
   getInflowBalance,
   getOutflowBalance,
   getFormattedBalance,
@@ -8,6 +9,8 @@ import {
   getFormattedOutflowBalance,
   getOutflowByCategoryName,
   getInflowByCategoryName,
+  getPercentageOfTotalFromTransaction,
+  getFormattedTransactionPercentage,
 } from '../transactions';
 
 // Mock 'selectors/categories' dependency
@@ -47,6 +50,21 @@ describe('getTransactions', () => {
     const expectedSelection = [];
 
     expect(getTransactions(state)).toEqual(expectedSelection);
+  });
+});
+
+describe('getTransactionById', () => {
+  it('should return transaction from the state based on transaction id', () => {
+    const state = { transactions: [{ id: 1 }, { id: 2 }] };
+    const expectedSelection = { id: 1 };
+
+    expect(getTransactionById(1)(state)).toEqual(expectedSelection);
+  });
+
+  it('should return undefined if transaction is not found by id', () => {
+    const state = { transactions: [{ id: 1 }, { id: 2 }] };
+
+    expect(getTransactionById(3)(state)).toEqual(undefined);
   });
 });
 
@@ -370,5 +388,59 @@ describe('getInflowByCategoryName', () => {
     expect(getInflowByCategoryName.recomputations()).toEqual(1);
     expect(getInflowByCategoryName(state3)).toEqual(expectedSelection2);
     expect(getInflowByCategoryName.recomputations()).toEqual(2);
+  });
+
+  describe('getPercentageOfTotalFromTransaction', () => {
+    it('should return calculated percentage from outflow total', () => {
+      const state = {
+        transactions: [{ id: 1, value: -800 }, { id: 2, value: -800 }, { id: 3, value: 200 }, { id: 4, value: 800 }],
+      };
+
+      expect(getPercentageOfTotalFromTransaction({ id: 1, value: -800 })(state)).toEqual(-0.5);
+    });
+
+    it('should return calculated percentage from inflow total', () => {
+      const state = {
+        transactions: [{ id: 1, value: -800 }, { id: 2, value: -800 }, { id: 3, value: 200 }, { id: 4, value: 800 }],
+      };
+
+      expect(getPercentageOfTotalFromTransaction({ id: 3, value: 200 })(state)).toEqual(0.2);
+    });
+
+    it('should return 1 if only 1 inflow item', () => {
+      const state = {
+        transactions: [{ id: 1, value: -800 }, { id: 2, value: -800 }, { id: 3, value: 200 }],
+      };
+
+      expect(getPercentageOfTotalFromTransaction({ id: 3, value: 200 })(state)).toEqual(1);
+    });
+  });
+
+  describe('getFormattedTransactionPercentage', () => {
+    it('should return formatted percentage from outflow total', () => {
+      const state = {
+        transactions: [{ id: 1, value: -800 }, { id: 2, value: -800 }, { id: 3, value: 200 }, { id: 4, value: 800 }],
+      };
+
+      const expectedSelection = {
+        text: '-50%',
+        isNegative: true,
+      };
+
+      expect(getFormattedTransactionPercentage(state, { id: 1, value: -800 })).toEqual(expectedSelection);
+    });
+
+    it('should return formatted percentage from inflow total', () => {
+      const state = {
+        transactions: [{ id: 1, value: -800 }, { id: 2, value: -800 }, { id: 3, value: 200 }, { id: 4, value: 800 }],
+      };
+
+      const expectedSelection = {
+        text: '+20%',
+        isNegative: false,
+      };
+
+      expect(getFormattedTransactionPercentage(state, { id: 3, value: 200 })).toEqual(expectedSelection);
+    });
   });
 });

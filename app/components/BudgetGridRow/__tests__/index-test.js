@@ -15,6 +15,10 @@ it('renders correctly', () => {
     2: 'School',
   };
 
-  const tree = renderer.create(<BudgetGridRow transaction={mockTransaction} categories={mockCategories} />).toJSON();
+  const mockOnClick = jest.fn();
+
+  const tree = renderer
+    .create(<BudgetGridRow transaction={mockTransaction} categories={mockCategories} onClick={mockOnClick} />)
+    .toJSON();
   expect(tree).toMatchSnapshot();
 });

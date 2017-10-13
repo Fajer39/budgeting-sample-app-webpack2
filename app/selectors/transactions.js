@@ -2,6 +2,7 @@
 
 import { createSelector } from 'reselect';
 import formatAmount from 'utils/formatAmount';
+import memoize from 'fast-memoize';
 import type { State } from 'modules/rootReducer';
 import type { Transaction } from 'modules/transactions';
 import { getCategories } from './categories';
@@ -38,6 +39,10 @@ const applyCategoryName = (transactions: TransactionSummary[], categories) =>
   });
 
 export const getTransactions = (state: State): Transaction[] => state.transactions || [];
+
+export const getTransactionById = memoize(id =>
+  createSelector([getTransactions], transactions => transactions.find(item => item.id === parseInt(id, 10)))
+);
 
 const getInflowTransactions = createSelector([getTransactions], transactions =>
   transactions.filter(item => item.value > 0)
@@ -77,4 +82,15 @@ export const getOutflowByCategoryName = createSelector(getOutflowByCategory, get
 
 export const getInflowByCategoryName = createSelector(getInflowByCategory, getCategories, (trans, cat) =>
   applyCategoryName(trans, cat)
+);
+
+export const getPercentageOfTotalFromTransaction = memoize(transaction =>
+  createSelector([getInflowBalance, getOutflowBalance], (inflowBalance, outflowBalance) => {
+    const { value } = transaction;
+    return Math.abs(value) / (value < 0 ? outflowBalance : inflowBalance);
+  })
+);
+
+export const getFormattedTransactionPercentage = memoize((state, transaction) =>
+  formatAmount(getPercentageOfTotalFromTransaction(transaction)(state), true, true)
 );
