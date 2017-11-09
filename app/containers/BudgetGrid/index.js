@@ -36,7 +36,7 @@ export class BudgetGrid extends React.Component<BudgetGridProps, BudgetGridState
     const { transactions, categories } = this.props;
     const { rowId } = this.state;
 
-    if (rowId !== null) return <Redirect push to={`/transaction/${rowId}`} />;
+    if (rowId !== null && rowId !== undefined) return <Redirect push to={`/transaction/${rowId}`} />;
 
     return (
       <table className={styles.budgetGrid}>

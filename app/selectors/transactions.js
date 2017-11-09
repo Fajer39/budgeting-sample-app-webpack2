@@ -6,6 +6,7 @@ import memoize from 'fast-memoize';
 import type { State } from 'modules/rootReducer';
 import type { Transaction } from 'modules/transactions';
 import { getCategories } from './categories';
+import get from 'lodash/get';
 
 export type TransactionSummary = {
   categoryId: string,
@@ -93,4 +94,28 @@ export const getPercentageOfTotalFromTransaction = memoize(transaction =>
 
 export const getFormattedTransactionPercentage = memoize((state, transaction) =>
   formatAmount(getPercentageOfTotalFromTransaction(transaction)(state), true, true)
+);
+
+export const getTransactionChartData = memoize(transactionId =>
+  createSelector([getTransactionById(transactionId), getInflowBalance, getOutflowBalance], 
+  (transaction, inflowBalance, outflowBalance) => {
+    let value = get(transaction, 'value', null);
+    const isNegative = value < 0;
+    value = Math.abs(value);
+    const balance = isNegative ? outflowBalance : inflowBalance;
+    const finalBalance = Math.abs(balance) - value;
+  
+    return [
+      {
+        value: value,
+        categoryId: get(transaction, 'id', null),
+        label: get(transaction, 'description', null),
+      },
+      {
+        value: finalBalance,
+        categoryId: 'mockId12345678',
+        label: `Rest of ${isNegative ? 'outflow items' : 'inflow items'}`,
+      },
+    ];
+  })
 );
