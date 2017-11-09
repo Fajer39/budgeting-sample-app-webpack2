@@ -7,18 +7,13 @@ import { getTransactionChartData } from 'selectors/transactions';
 import DonutChart from 'components/DonutChart';
 
 type ChartProps = {
-  transaction: Object,
-  data: Array<Object>
+  data: Array<Object>,
 };
 
-const Chart = ({ data }: ChartProps) => {
-  return <DonutChart data={data} dataLabel="label" dataKey="categoryId" />;
-};
+const Chart = ({ data }: ChartProps) => <DonutChart data={data} dataLabel="label" dataKey="categoryId" />;
 
 const mapStateToProps = (state, { transaction }) => ({
-  data: getTransactionChartData(
-    get(transaction, 'id', null)
-  )(state)
+  data: getTransactionChartData(get(transaction, 'id', null))(state),
 });
 
 export default connect(mapStateToProps)(Chart);

@@ -450,23 +450,23 @@ describe('getTransactionChartData', () => {
   it('should return a correct transaction chart data for inflow item', () => {
     const state = {
       transactions: [
-        { id: 1, value: 10, description: 'Some inflow item' }, 
+        { id: 1, value: 10, description: 'Some inflow item' },
         { id: 2, value: -50, description: 'Some outflow item' },
-        { id: 3, value: 70, description: 'Some other inflow item' }
+        { id: 3, value: 70, description: 'Some other inflow item' },
       ],
     };
-      
+
     const expectedSelection = [
       {
         value: 10,
         categoryId: 1,
-        label: 'Some inflow item'
+        label: 'Some inflow item',
       },
       {
         value: 70,
         categoryId: 'mockId12345678',
-        label: 'Rest of inflow items'
-      }
+        label: 'Rest of inflow items',
+      },
     ];
 
     expect(getTransactionChartData(1)(state)).toEqual(expectedSelection);
@@ -475,23 +475,23 @@ describe('getTransactionChartData', () => {
   it('should return a correct transaction chart data for outflow item', () => {
     const state = {
       transactions: [
-        { id: 1, value: 10, description: 'Some inflow item' }, 
+        { id: 1, value: 10, description: 'Some inflow item' },
         { id: 2, value: -50, description: 'Some outflow item' },
-        { id: 3, value: 70, description: 'Some other inflow item' }
+        { id: 3, value: 70, description: 'Some other inflow item' },
       ],
     };
-      
+
     const expectedSelection = [
       {
         value: 50,
         categoryId: 2,
-        label: 'Some outflow item'
+        label: 'Some outflow item',
       },
       {
         value: 0,
         categoryId: 'mockId12345678',
-        label: 'Rest of outflow items'
-      }
+        label: 'Rest of outflow items',
+      },
     ];
 
     expect(getTransactionChartData(2)(state)).toEqual(expectedSelection);
