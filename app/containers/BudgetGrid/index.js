@@ -1,6 +1,7 @@
 // @flow
 import * as React from 'react';
 import { connect } from 'react-redux';
+import { Redirect } from 'react-router';
 import { getTransactions } from 'selectors/transactions';
 import { getCategories } from 'selectors/categories';
 import EntryFormRow from 'containers/EntryFormRow';
@@ -13,14 +14,29 @@ type BudgetGridProps = {
   categories: Object,
 };
 
-export class BudgetGrid extends React.Component<BudgetGridProps> {
+type BudgetGridState = {
+  rowId: ?number,
+};
+
+export class BudgetGrid extends React.Component<BudgetGridProps, BudgetGridState> {
   static defaultProps = {
     transactions: [],
     categories: {},
   };
 
+  state = {
+    rowId: null,
+  };
+
+  onRowClick(id: number) {
+    this.setState({ rowId: id });
+  }
+
   render() {
     const { transactions, categories } = this.props;
+    const { rowId } = this.state;
+
+    if (rowId !== null && rowId !== undefined) return <Redirect push to={`/transaction/${rowId}`} />;
 
     return (
       <table className={styles.budgetGrid}>
@@ -33,7 +49,12 @@ export class BudgetGrid extends React.Component<BudgetGridProps> {
         </thead>
         <tbody>
           {transactions.map((transaction: Transaction): React.Element<any> => (
-            <BudgetGridRow key={transaction.id} transaction={transaction} categories={categories} />
+            <BudgetGridRow
+              key={transaction.id}
+              transaction={transaction}
+              categories={categories}
+              onClick={() => this.onRowClick(transaction.id)}
+            />
           ))}
         </tbody>
         <tfoot>

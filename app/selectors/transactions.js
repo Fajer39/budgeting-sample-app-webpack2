@@ -1,7 +1,9 @@
 // @flow
 
 import { createSelector } from 'reselect';
+import get from 'lodash/get';
 import formatAmount from 'utils/formatAmount';
+import memoize from 'fast-memoize';
 import type { State } from 'modules/rootReducer';
 import type { Transaction } from 'modules/transactions';
 import { getCategories } from './categories';
@@ -38,6 +40,10 @@ const applyCategoryName = (transactions: TransactionSummary[], categories) =>
   });
 
 export const getTransactions = (state: State): Transaction[] => state.transactions || [];
+
+export const getTransactionById = memoize(id =>
+  createSelector([getTransactions], transactions => transactions.find(item => item.id === parseInt(id, 10)))
+);
 
 const getInflowTransactions = createSelector([getTransactions], transactions =>
   transactions.filter(item => item.value > 0)
@@ -77,4 +83,41 @@ export const getOutflowByCategoryName = createSelector(getOutflowByCategory, get
 
 export const getInflowByCategoryName = createSelector(getInflowByCategory, getCategories, (trans, cat) =>
   applyCategoryName(trans, cat)
+);
+
+export const getPercentageOfTotalFromTransaction = memoize(transaction =>
+  createSelector([getInflowBalance, getOutflowBalance], (inflowBalance, outflowBalance) => {
+    const { value } = transaction;
+    return Math.abs(value) / (value < 0 ? outflowBalance : inflowBalance);
+  })
+);
+
+export const getFormattedTransactionPercentage = memoize((state, transaction) =>
+  formatAmount(getPercentageOfTotalFromTransaction(transaction)(state), true, true)
+);
+
+export const getTransactionChartData = memoize(transactionId =>
+  createSelector(
+    [getTransactionById(transactionId), getInflowBalance, getOutflowBalance],
+    (transaction, inflowBalance, outflowBalance) => {
+      let value = get(transaction, 'value', null);
+      const isNegative = value < 0;
+      value = Math.abs(value);
+      const balance = isNegative ? outflowBalance : inflowBalance;
+      const finalBalance = Math.abs(balance) - value;
+
+      return [
+        {
+          value: value,
+          categoryId: get(transaction, 'id', null),
+          label: get(transaction, 'description', null),
+        },
+        {
+          value: finalBalance,
+          categoryId: 'mockId12345678',
+          label: `Rest of ${isNegative ? 'outflow items' : 'inflow items'}`,
+        },
+      ];
+    }
+  )
 );
